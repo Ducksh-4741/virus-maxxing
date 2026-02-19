@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreatScan — Virus Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div id="loading">
+    <div class="spinner"></div>
+    <p>Scanning file… running all detection engines…</p>
+</div>
+
+<div class="container">
+    <h1>🛡️ Security Maxxing</h1>
+    <p style="text-align:center;color:#64748b;margin-bottom:28px;">
+        Multi-engine file threat analysis — Signature · Heuristic · Entropy · PE · Obfuscation
+    </p>
+
+    <form action="/scan" method="POST" enctype="multipart/form-data" id="scanForm">
+        <div class="upload-area" id="dropZone">
+            <div class="upload-icon">📂</div>
+            <div class="upload-text">
+                <strong>Click to choose a file</strong> or drag &amp; drop here
+            </div>
+            <div id="file-name">No file selected</div>
+            <input type="file" name="file" id="fileInput" required>
+        </div>
+
+        <p style="font-size:.8rem;color:#475569;text-align:center;margin-top:6px;">
+            Supports: EXE, DLL, PDF, DOC, DOCX, ZIP, JS, VBS, BAT, PS1, PY, SH, APK, and more · Max 32 MB
+        </p>
+        <button type="submit">🔍 Scan File</button>
+    </form>
+
+    <div class="nav">
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/history">📜 Scan History</a>
+        <a href="/admin">⚙️ Admin</a>
+    </div>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const fileName  = document.getElementById('file-name');
+const form      = document.getElementById('scanForm');
+const loading   = document.getElementById('loading');
+const dropZone  = document.getElementById('dropZone');
+
+fileInput.addEventListener('change', () => {
+    fileName.textContent = fileInput.files[0]?.name || 'No file selected';
+});
+
+// Drag & drop
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor='#3b82f6'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor=''; });
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor='';
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileName.textContent = e.dataTransfer.files[0].name;
+    }
+});
+
+form.addEventListener('submit', () => {
+    loading.style.display = 'flex';
+});
+</script>
+</body>
+</html>

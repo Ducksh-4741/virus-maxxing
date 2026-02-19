@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — ThreatScan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <h2>⚙️ Admin — Signature Database</h2>
+
+    {% if message %}
+    <div class="alert {{ message[0] }}">{{ message[1] }}</div>
+    {% endif %}
+
+    <div class="section-title">Add New Malware Signature</div>
+    <form method="POST">
+        <input type="text"   name="hash"     placeholder="SHA-256 Hash (required)" required>
+        <input type="text"   name="name"     placeholder="Malware Name (e.g. WannaCry)">
+        <input type="text"   name="category" placeholder="Category (e.g. Ransomware, Trojan)">
+        <input type="number" name="severity" placeholder="Severity 1–100" min="1" max="100" value="80">
+        <button type="submit">➕ Add Signature</button>
+    </form>
+
+    {% if signatures %}
+    <div class="section-title">Known Signatures ({{ signatures | length }})</div>
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>#</th>
+                <th>SHA-256</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Action</th>
+            </tr>
+            {% for sig in signatures %}
+            <tr>
+                <td>{{ sig[0] }}</td>
+                <td class="hash-cell" title="{{ sig[1] }}">{{ sig[1][:18] }}…</td>
+                <td>{{ sig[2] or '—' }}</td>
+                <td>{{ sig[3] or '—' }}</td>
+                <td>
+                    <span style="color:{% if sig[4] >= 80 %}#ef4444{% elif sig[4] >= 50 %}#facc15{% else %}#22c55e{% endif %};">
+                        {{ sig[4] }}
+                    </span>
+                </td>
+                <td>
+                    <form method="POST" action="/admin/delete/{{ sig[0] }}"
+                          onsubmit="return confirm('Delete this signature?');" style="margin:0;">
+                        <button type="submit" class="danger sm">🗑 Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+        <p style="color:#64748b;margin-top:16px;">No signatures in the database yet.</p>
+    {% endif %}
+
+    <div class="nav">
+        <a href="/">🛡️ Home</a>
+        <a href="/dashboard">📊 Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Result — ThreatScan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <h2>🔍 Scan Result</h2>
+
+    <!-- ── Verdict banner ── -->
+    {% set rl = risk_level | lower %}
+    <div class="verdict {{ rl }}">
+        {% if rl == 'critical' %}🚨
+        {% elif rl == 'high' %}⚠️
+        {% elif rl == 'medium' %}🟡
+        {% elif rl == 'low' %}🟢
+        {% else %}✅
+        {% endif %}
+        {{ result }} &nbsp;·&nbsp; Risk: {{ risk_level }}
+    </div>
+
+    <!-- ── Score bar ── -->
+    <div class="score-wrap">
+        {% set bar_pct = [score, 100] | min %}
+        {% if score >= 80 %}{% set bar_color = '#ef4444' %}
+        {% elif score >= 60 %}{% set bar_color = '#f97316' %}
+        {% elif score >= 40 %}{% set bar_color = '#facc15' %}
+        {% elif score >= 15 %}{% set bar_color = '#a3e635' %}
+        {% else %}{% set bar_color = '#22c55e' %}
+        {% endif %}
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:.8rem;color:#64748b;">Threat Score</span>
+            <span style="font-size:.9rem;font-weight:700;color:{{ bar_color }};">{{ score }} / 100+</span>
+        </div>
+        <div class="score-bar-bg">
+            <div class="score-bar-fill" id="scoreBar"
+                 style="width:0;background:{{ bar_color }};"></div>
+        </div>
+    </div>
+
+    <!-- ── File info grid ── -->
+    <div class="result-grid">
+        <div class="card">
+            <div class="label">File Name</div>
+            <div class="value">{{ filename }}</div>
+        </div>
+        <div class="card">
+            <div class="label">Detected Type</div>
+            <div class="value">{{ file_type }}</div>
+        </div>
+        <div class="card">
+            <div class="label">File Size</div>
+            <div class="value">
+                {% if file_size < 1024 %}{{ file_size }} B
+                {% elif file_size < 1048576 %}{{ (file_size / 1024) | round(1) }} KB
+                {% else %}{{ (file_size / 1048576) | round(2) }} MB
+                {% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <div class="label">Entropy</div>
+            <div class="value">{{ entropy }}
+                <span style="font-size:.75rem;color:#64748b;">/8.0</span>
+            </div>
+        </div>
+        <div class="card" style="grid-column: span 2;">
+            <div class="label">SHA-256</div>
+            <div class="value" style="font-family:monospace;font-size:.8rem;word-break:break-all;">{{ sha256 }}</div>
+        </div>
+        <div class="card" style="grid-column: span 2;">
+            <div class="label">MD5</div>
+            <div class="value" style="font-family:monospace;font-size:.85rem;">{{ md5 }}</div>
+        </div>
+    </div>
+
+    <!-- ── Detection flags ── -->
+    {% if flags %}
+    <div class="section-title">Detection Flags ({{ flags | length }})</div>
+    <ul class="flags-list">
+        {% for flag in flags %}
+        <li class="
+            {% if 'Signature' in flag or 'signature' in flag %}sig
+            {% elif 'PE' in flag or 'Keyword' in flag %}kw
+            {% elif 'entropy' in flag | lower or 'obfuscat' in flag | lower %}ob
+            {% elif 'PE type' in flag or 'timestamp' in flag %}pe
+            {% else %}info
+            {% endif %}
+        ">{{ flag }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color:#64748b;margin-top:16px;">No detection flags raised.</p>
+    {% endif %}
+
+    <div class="nav">
+        <a href="/">🔄 Scan Another</a>
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/history">📜 History</a>
+    </div>
+</div>
+
+<script>
+window.addEventListener('load', () => {
+    const bar = document.getElementById('scoreBar');
+    const score = {{ score }};
+    const pct = Math.min(score, 100);
+    requestAnimationFrame(() => { bar.style.width = pct + '%'; });
+});
+</script>
+</body>
+</html>

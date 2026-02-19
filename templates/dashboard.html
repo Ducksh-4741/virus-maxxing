@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ThreatScan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <h2>📊 Security Dashboard</h2>
+
+    <!-- ── Stat cards ── -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="number info-color">{{ total }}</div>
+            <div class="label">Total Scans</div>
+        </div>
+        <div class="stat-card">
+            <div class="number malicious">{{ malicious }}</div>
+            <div class="label">Malicious</div>
+        </div>
+        <div class="stat-card">
+            <div class="number suspicious">{{ suspicious }}</div>
+            <div class="label">Suspicious</div>
+        </div>
+        <div class="stat-card">
+            <div class="number puw">{{ puw }}</div>
+            <div class="label">Potentially Unwanted</div>
+        </div>
+        <div class="stat-card">
+            <div class="number safe">{{ safe }}</div>
+            <div class="label">Clean</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" style="color:#a78bfa;">{{ avg_score }}</div>
+            <div class="label">Avg Threat Score</div>
+        </div>
+    </div>
+
+    <!-- ── Threat distribution bar ── -->
+    {% if total > 0 %}
+    <div class="section-title">Threat Distribution</div>
+    <div style="display:flex;height:18px;border-radius:99px;overflow:hidden;gap:2px;">
+        {% if malicious %}
+        <div style="flex:{{ malicious }};background:#ef4444;" title="Malicious: {{ malicious }}"></div>
+        {% endif %}
+        {% if suspicious %}
+        <div style="flex:{{ suspicious }};background:#facc15;" title="Suspicious: {{ suspicious }}"></div>
+        {% endif %}
+        {% if puw %}
+        <div style="flex:{{ puw }};background:#a3e635;" title="Potentially Unwanted: {{ puw }}"></div>
+        {% endif %}
+        {% if safe %}
+        <div style="flex:{{ safe }};background:#22c55e;" title="Safe: {{ safe }}"></div>
+        {% endif %}
+    </div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:.8rem;color:#64748b;flex-wrap:wrap;">
+        <span>🔴 Malicious</span><span>🟡 Suspicious</span>
+        <span>🟢 Potentially Unwanted</span><span>✅ Safe</span>
+    </div>
+    {% endif %}
+
+    <!-- ── Top threats ── -->
+    {% if top_threats %}
+    <div class="section-title">Top Threats by Score</div>
+    <div class="table-wrap">
+        <table>
+            <tr><th>File</th><th>Score</th><th>Result</th><th>Time</th></tr>
+            {% for t in top_threats %}
+            <tr>
+                <td>{{ t[0] }}</td>
+                <td><span class="{% if t[1] >= 80 %}malicious{% elif t[1] >= 40 %}suspicious{% else %}safe{% endif %}">{{ t[1] }}</span></td>
+                <td>{{ t[2] }}</td>
+                <td style="color:#64748b;font-size:.8rem;">{{ t[3][:16] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ── File types ── -->
+    {% if file_types %}
+    <div class="section-title">Scanned File Types</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;">
+        {% for ft in file_types %}
+        <span style="background:#0f172a;border:1px solid #1e2d45;border-radius:6px;padding:5px 12px;font-size:.83rem;">
+            {{ ft[0] }} <span style="color:#38bdf8;font-weight:700;">{{ ft[1] }}</span>
+        </span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── Daily scans ── -->
+    {% if daily %}
+    <div class="section-title">Daily Scans (Last 7 Days)</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:80px;padding:8px 0;">
+        {% set max_day = daily | map(attribute=1) | max %}
+        {% for day in daily | reverse %}
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:100%;background:#3b82f6;border-radius:4px 4px 0 0;
+                        height:{{ ((day[1] / max_day) * 60) | int }}px;min-height:4px;"
+                 title="{{ day[0] }}: {{ day[1] }} scans"></div>
+            <span style="font-size:.65rem;color:#64748b;">{{ day[0][5:] }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="nav">
+        <a href="/">🛡️ Scan File</a>
+        <a href="/history">📜 History</a>
+        <a href="/admin">⚙️ Admin</a>
+    </div>
+</div>
+</body>
+</html>
